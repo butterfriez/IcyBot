@@ -7,6 +7,7 @@ import {
     EmbedBuilder
 } from "discord.js"
 import { config } from "dotenv"
+import newAccount from "./commands/NewAccount.js"
 config()
 import SendEmbed from "./commands/SendEmbed.js"
 import utils from "./utils.js"
@@ -31,6 +32,44 @@ client.on('interactionCreate', async (interaction) => {
                 .setComponents(utils.sendButtonPriceHandler())
             await interaction.channel.send({ embeds: [utils.sendEmbedPrices()], components: [buttons] })
         }
+        if (interaction.commandName === "account") {
+            const ign = interaction.options.getString("username")
+            const price = interaction.options.getString("price")
+            const rank = interaction.options.getString("rank")
+            const networth = interaction.options.getString("networth")
+            const slayers = interaction.options.getString("slayers")
+            const sa = interaction.options.getInteger("sa")
+            const cata = interaction.options.getInteger("cata")
+
+            await interaction.guild.channels.create({
+                name: `account-${networth}-${price}`,
+                parent: '1060621170514350162',
+                permissionOverwrites: [
+                    {
+                        deny: ['SendMessages'],
+                        id: guild_id,
+                    },
+                    {
+                        allow: ['ViewChannel', 'SendMessages'],
+                        id: '1060399996677144627'
+                    }
+                ]
+            }).then(c => {
+                const embed = new EmbedBuilder()
+                    .setAuthor({ name: "[ Icy Accounts ]" })
+                    .setTitle("New Account")
+                    .setDescription(ign)
+                    .setFields(
+                        { name: "**[ Info ]**", value: `Rank: ${rank} Networth: ${networth} Skill Average: ${sa}\nCatacombs: ${cata} Slayers: ${slayers}\nBin Price: ${price}` }
+                    )
+                    .setFooter({ text: "[ Developed by Butther ]" })
+                    .setColor(0x34d6d0)
+
+                c.send({ embeds: [embed] })
+                interaction.reply(`New account channel created! <#${c.id}>`)
+                setTimeout(() => { interaction.deleteReply() }, 2000)
+            })
+        }
     }
 
     try {
@@ -45,7 +84,7 @@ client.on('interactionCreate', async (interaction) => {
                 CoinType = "buy"
             }
 
-            if (interaction.component.customId == "Sell Account" || interaction.component.customId == "SellAccount") { //errors idk y
+            if (interaction.component.customId == "Account") { //errors idk y
                 interaction.showModal(utils.sendModalPrices("account"))
                 CoinType = "account"
             }
@@ -60,39 +99,41 @@ client.on('interactionCreate', async (interaction) => {
 
     if (interaction.isModalSubmit()) {
         if (interaction.customId == "PriceModal") {
-            if (interaction.fields.getField("Amount").value.toString().match(/[0-9]+[a-z, A-Z]/)) {
-                await interaction.guild.channels.create({
-                    name: `${CoinType}-${interaction.fields.getField("PaymentMethod").value}-${interaction.fields.getField("Amount").value}-${interaction.user.tag}`,
-                    parent: '1059931083610804334',
-                    permissionOverwrites: [
-                        {
-                            allow: ['ViewChannel', 'SendMessages'],
-                            id: interaction.user.id,
-                        },
-                        {
-                            allow: ['ViewChannel', 'SendMessages'],
-                            id: client.user.id
-                        },
-                        {
-                            deny: ['ViewChannel', 'SendMessages'],
-                            id: guild_id,
-                        },
-                        {
-                            allow: ['ViewChannel', 'SendMessages'],
-                            id: '1060399996677144627'
-                        }
-                    ]
-                }).then(async c => {
-                    const Button = new ActionRowBuilder()
-                        .setComponents(utils.closeTicketButton())
-                    c.send({ components: [Button], embeds: [utils.ticketEmbed()] })
-                    interaction.reply({ content: `<@${interaction.user.id}> Successfully made a ticket.\n <#${c.id}>` })
-                    setTimeout(() => { interaction.deleteReply() }, 2000)
-                })
-            } else {
-                interaction.reply({ content: `<@${interaction.user.id}> Only numbers are supported. (Example: 100m, or 100,000,000)`})
-                setTimeout(() => { interaction.deleteReply() }, 2000)
+            let ChannelId = "1059931083610804334"
+            if (CoinType == "buy" || CoinType == "sell") {
+                ChannelId = "1059931083610804334"
+            } else if (CoinType == "account") {
+                ChannelId = "1060620952800604210"
             }
+
+            await interaction.guild.channels.create({
+                name: `${CoinType}-${interaction.fields.getField("PaymentMethod").value}-${interaction.fields.getField("Amount").value}-${interaction.user.tag}`,
+                parent: ChannelId,
+                permissionOverwrites: [
+                    {
+                        allow: ['ViewChannel', 'SendMessages'],
+                        id: interaction.user.id,
+                    },
+                    {
+                        allow: ['ViewChannel', 'SendMessages'],
+                        id: client.user.id
+                    },
+                    {
+                        deny: ['ViewChannel', 'SendMessages'],
+                        id: guild_id,
+                    },
+                    {
+                        allow: ['ViewChannel', 'SendMessages'],
+                        id: '1060399996677144627'
+                    }
+                ]
+            }).then(async c => {
+                const Button = new ActionRowBuilder()
+                    .setComponents(utils.closeTicketButton())
+                c.send({ components: [Button], embeds: [utils.ticketEmbed()] })
+                interaction.reply({ content: `<@${interaction.user.id}> Successfully made a ticket.\n <#${c.id}>` })
+                setTimeout(() => { interaction.deleteReply() }, 2000)
+            })
         }
 
         if (interaction.customId == "Transcript") {
@@ -115,6 +156,7 @@ client.on('interactionCreate', async (interaction) => {
 async function main() {
     const commands = [
         SendEmbed,
+        newAccount
     ]
     try {
         console.log('Started refreshing (/) commands')

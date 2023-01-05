@@ -55,9 +55,9 @@ export default {
                     new TextInputBuilder()
                         .setLabel("Account Networth")
                         .setCustomId("Amount")
-                        .setRequired(true)
+                        .setRequired(false)
                         .setStyle(TextInputStyle.Short)
-                        .setPlaceholder("Amount of networth account has. (link sky shiiyu in ticket).")
+                        .setPlaceholder("Amount of networth account has. (leave blank if buying).")
                 )
 
         if (option == "sell") {
@@ -81,8 +81,8 @@ export default {
             .setStyle(ButtonStyle.Primary)
 
         const button2 = new ButtonBuilder()
-            .setCustomId("SellAccount")
-            .setLabel("Sell Account")
+            .setCustomId("Account")
+            .setLabel("Sell/Buy Account")
             .setStyle(ButtonStyle.Primary)
 
         return [button, button1, button2]
