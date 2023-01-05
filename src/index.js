@@ -33,19 +33,29 @@ client.on('interactionCreate', async (interaction) => {
         }
     }
 
-    if (interaction.isButton()) {
-        if (interaction.component.customId == "SellCoins") {
-            await interaction.showModal(utils.sendModalPrices("sell"))
-            CoinType = "sell"
-        } else if (interaction.component.customId == "BuyCoins") {
-            await interaction.showModal(utils.sendModalPrices("buy"))
-            CoinType = "buy"
-        } else if (interaction.component.customId == "SellAccount") {
-            await interaction.showModal(utils.sendModalPrices("account"))
-            CoinType = "account"
-        } else if (interaction.component.customId == "CloseTicket") {
-            await interaction.showModal(utils.transcriptModal())
+    try {
+        if (interaction.isButton()) {
+            if (interaction.component.customId == "SellCoins") {
+                await interaction.showModal(utils.sendModalPrices("sell"))
+                CoinType = "sell"
+            }
+
+            if (interaction.component.customId == "BuyCoins") {
+                await interaction.showModal(utils.sendModalPrices("buy"))
+                CoinType = "buy"
+            }
+
+            if (interaction.component.customId == "Sell Account" || interaction.component.customId == "SellAccount") { //errors idk y
+                interaction.showModal(utils.sendModalPrices("account"))
+                CoinType = "account"
+            }
+
+            if (interaction.component.customId == "CloseTicket") {
+                await interaction.showModal(utils.transcriptModal())
+            }
         }
+    } catch (error) {
+        console.error(error)
     }
 
     if (interaction.isModalSubmit()) {
