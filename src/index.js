@@ -4,13 +4,16 @@ import {
     GatewayIntentBits,
     Routes,
     ActionRowBuilder,
-    EmbedBuilder
+    EmbedBuilder,
+    Attachment,
+    AttachmentBuilder
 } from "discord.js"
 import { config } from "dotenv"
 import newAccount from "./commands/NewAccount.js"
 config()
 import SendEmbed from "./commands/SendEmbed.js"
 import utils from "./utils.js"
+import fs from "fs"
 
 const token = process.env.TOKEN
 const client_id = process.env.CLIENT_ID
@@ -24,6 +27,10 @@ let CoinType;
 const rest = new REST({ version: '10' }).setToken(token)
 
 client.on('ready', () => console.log(`Icy Bot launched! ${client.user.tag}`))
+
+client.on("guildMemberAdd", (member) => {
+    client.guilds.client.channels.cache.get("1060665184768766033").edit({})
+})
 
 client.on('interactionCreate', async (interaction) => {
     if (interaction.isChatInputCommand()) {
@@ -130,25 +137,41 @@ client.on('interactionCreate', async (interaction) => {
             }).then(async c => {
                 const Button = new ActionRowBuilder()
                     .setComponents(utils.closeTicketButton())
-                c.send({ components: [Button], embeds: [utils.ticketEmbed()] })
+                if (c.name.includes("buy") || c.name.includes("sell")) {
+                    c.send({ components: [Button], embeds: [utils.ticketEmbed()] })
+                }
+                if (c.name.includes("account")) {
+                    c.send({ content: `https://sky.shiiyu.moe/${interaction.fields.getField("Amount").value}`, components: [Button] })
+                }
                 interaction.reply({ content: `<@${interaction.user.id}> Successfully made a ticket.\n <#${c.id}>` })
                 setTimeout(() => { interaction.deleteReply() }, 2000)
             })
         }
 
         if (interaction.customId == "Transcript") {
-            const embed = new EmbedBuilder()
-                .setAuthor({ name: "[ Icy Coins ]" })
-                .setColor(0xf5b942)
-                .setTitle("Ticket Closed\nTranscripts")
-                .addFields({
-                    name: `User: ${interaction.user.tag}`,
-                    value: `${interaction.fields.getField("Reason").value}`
-                })
-                .setFooter({ text: "[ Developed by Butther ]" })
-            client.channels.cache.get("1060383555198394429").send({ embeds: [embed] })
-            interaction.reply("Closing ticket.")
-            setTimeout(() => { interaction.channel.delete("Ticket closed.") }, 5000)
+            let array = ""
+            interaction.channel.messages.cache.forEach(message => {
+                array = array + (`${message["author"]["username"]}: ${message["content"]}\n`)
+            })
+            interaction.reply(`<@${interaction.user.id}> Closing ticket.`)
+            setTimeout(() => {
+                interaction.channel.delete("Ticket closed.")
+
+                fs.writeFileSync(`../${interaction.channel.id}.txt`, array)
+                const embed = new EmbedBuilder()
+                    .setAuthor({ name: "[ Icy Coins ]" })
+                    .setColor(0xf5b942)
+                    .setTitle("Ticket Closed\nTranscripts")
+                    .addFields(
+                        {
+                            name: `User: ${interaction.user.tag}`,
+                            value: `${interaction.fields.getField("Reason").value}`
+                        })
+                    .setFooter({ text: "[ Developed by Butther ]" })
+                const file = new AttachmentBuilder(fs.createReadStream(`../${interaction.channel.id}.txt`))
+                client.channels.cache.get("1060383555198394429").send({ embeds: [embed]})
+                interaction.followUp({files: [file]})
+            }, 5000)
         }
     }
 })

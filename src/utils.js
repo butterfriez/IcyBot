@@ -1,4 +1,5 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, ModalBuilder, TextInputBuilder, TextInputStyle } from "discord.js"
+import { config } from "dotenv";
 
 export default {
     sendEmbedPrices: () => {
@@ -53,11 +54,11 @@ export default {
         const sellAccount = new ActionRowBuilder()
                 .setComponents(
                     new TextInputBuilder()
-                        .setLabel("Account Networth")
+                        .setLabel("Username")
                         .setCustomId("Amount")
                         .setRequired(false)
                         .setStyle(TextInputStyle.Short)
-                        .setPlaceholder("Amount of networth account has. (leave blank if buying).")
+                        .setPlaceholder("Username of the account.")
                 )
 
         if (option == "sell") {
@@ -121,11 +122,15 @@ export default {
             .setTitle("Info!")
             .addFields({
                 "name": "[ What to Do ]",
-                "value": "Please state your **IGN**"
+                "value": "Please state the **IGN** of your account."
             })
             .setColor(0x34d6d0)
             .setFooter({ text: "[ Developed by Butther ]" })
 
         return msg;
+    },
+
+    apiRequest: (username) => {
+
     }
 }
