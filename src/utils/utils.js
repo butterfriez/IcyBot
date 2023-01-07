@@ -1,5 +1,5 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, ModalBuilder, TextInputBuilder, TextInputStyle } from "discord.js"
-import fs from "fs"
+import fs from "fs/promises"
 export default {
     sendEmbedPrices: () => {
         let msg = new EmbedBuilder()
@@ -9,6 +9,16 @@ export default {
                 "name": "[ Prices ]",
                 "value": "**-------------\nSELLING Prices we buy at.\n-------------**\n[ 200m - 1b ] **0.06/m**\n[ 1b+ ] **0.07/m**\n\n**-------------\nBUYING Prices we sell at.\n-------------**\n[ 200m - 1b ] **0.11/m**\n[ 1b+ ] **0.1/m**"
             })
+            .setColor(0x34d6d0)
+            .setFooter({ text: "[ Developed by Butther ]" })
+
+        return msg;
+    },
+
+    sendVerification: () => {
+        let msg = new EmbedBuilder()
+            .setAuthor({ name: "[ Icy Coins ]" })
+            .setTitle("**Click on the button below to get verified.**")
             .setColor(0x34d6d0)
             .setFooter({ text: "[ Developed by Butther ]" })
 
@@ -130,36 +140,20 @@ export default {
     },
     
     //chatgpt
-    abbreviateNumber: (num, networth = false) => {
-        const ABBREVIATIONS = ['', 'K', 'M', 'B', 'T'];
-
-        if (num.toString().match(/(\d\d\d)(K|M|B|T)/g)) {
-            console.log(num)
-            return num;
-        } else {
-            for (let i = ABBREVIATIONS.length - 1; i >= 0; i--) {
-                const abbreviation = ABBREVIATIONS[i];
-                const size = Math.pow(1000, i);
-                if (num >= size) {
-                    if (networth == true) {
-                        const roundedNum = Math.floor(num / size);
-                        return Math.floor(num / size) + abbreviation;
-                    } else {
-                        const roundedNum = Math.round(num / size * 100) / 100;
-                        return roundedNum + abbreviation;
-                    }
-                }
-            }
-        }
+    abbreviateNumber: (num) => {
+        return new Intl.NumberFormat("en-US", {notation: "compact",compactDisplay: "short"}).format(num)
     },
 
-    saveData: async(key, value) => {
-        const data = await fs.readFileSync('data.json');
+    saveData: async(key, value, num) => {
+        const data = await fs.readFile('data.json');
         const obj = JSON.parse(data);
+        
+        if(num) {
+            obj[key]++
+        } else {
+            obj[key] = value
+        }
 
-        obj[key] = value;
-
-        await fs.writeFileSync('data.json', JSON.stringify(obj));
-        console.log('The file has been updated!');
+        await fs.writeFile('data.json', JSON.stringify(obj));
     }
 }

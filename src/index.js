@@ -5,12 +5,15 @@ import {
     Routes,
     ActionRowBuilder,
     EmbedBuilder,
-    AttachmentBuilder
+    AttachmentBuilder,
+    ButtonBuilder,
+    ButtonStyle
 } from "discord.js"
 import { config } from "dotenv"
 import newAccount from "./commands/NewAccount.js"
-config()
 import SendEmbed from "./commands/SendEmbed.js"
+import SendVerification from "./commands/SendVerification.js"
+config()
 import utils from "./utils/utils.js"
 import fs from "fs"
 import Extra from "./utils/Extra.js"
@@ -42,6 +45,16 @@ client.on('interactionCreate', (interaction) => {
         if (interaction.commandName === "account") {
             Extra.accountUtil(interaction)
         }
+        if(interaction.commandName === "sendverification") {
+            const buttons = new ActionRowBuilder()
+                .setComponents(
+                    new ButtonBuilder()
+                        .setCustomId("Verify")
+                        .setStyle(ButtonStyle.Success)
+                        .setLabel("Verify")
+                )
+            interaction.channel.send({ embeds: [utils.sendVerification()], components: [buttons]})
+        }
     }
 
     try {
@@ -63,6 +76,13 @@ client.on('interactionCreate', (interaction) => {
 
             if (interaction.component.customId == "CloseTicket") {
                 interaction.showModal(utils.transcriptModal())
+            }
+
+            if (interaction.component.customId == "Verify") {
+                interaction.member.roles.add(interaction.guild.roles.cache.find(role => role.name.toLowerCase() == "verified"))
+                interaction.member.roles.remove(interaction.guild.roles.cache.find(role => role.name.toLowerCase() == "unverified"))
+                interaction.reply(`Verified <@${interaction.user.id}>!`)
+                setTimeout(() => {interaction.deleteReply()}, 2000)
             }
         }
     } catch (error) {
@@ -144,11 +164,11 @@ client.on('interactionCreate', (interaction) => {
 client.on("error", (error) => {
     console.error(error)
 })
-
 async function main() {
     const commands = [
         SendEmbed,
-        newAccount
+        newAccount,
+        SendVerification
     ]
     try {
         console.log('Started refreshing (/) commands')
