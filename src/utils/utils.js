@@ -1,6 +1,5 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, ModalBuilder, TextInputBuilder, TextInputStyle } from "discord.js"
-import { config } from "dotenv";
-
+import axios from "axios";
 export default {
     sendEmbedPrices: () => {
         let msg = new EmbedBuilder()
@@ -130,7 +129,21 @@ export default {
         return msg;
     },
 
-    apiRequest: (username) => {
+    //chatgpt
+    abbreviateNumber: (num) => {
+        const ABBREVIATIONS = ['', 'K', 'M', 'B', 'T'];
 
-    }
+        if (num < 1000) {
+          return Math.floor(num);
+        }
+      
+        for (let i = ABBREVIATIONS.length - 1; i >= 0; i--) {
+          const abbreviation = ABBREVIATIONS[i];
+          const size = Math.pow(1000, i);
+          if (num >= size) {
+            return Math.floor(num / size) + abbreviation;
+          }
+        }
+      },
+      
 }

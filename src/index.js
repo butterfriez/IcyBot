@@ -12,8 +12,10 @@ import { config } from "dotenv"
 import newAccount from "./commands/NewAccount.js"
 config()
 import SendEmbed from "./commands/SendEmbed.js"
-import utils from "./utils.js"
+import utils from "./utils/utils.js"
 import fs from "fs"
+import axios from "axios";
+import Extra from "./utils/Extra.js"
 
 const token = process.env.TOKEN
 const client_id = process.env.CLIENT_ID
@@ -32,62 +34,27 @@ client.on("guildMemberAdd", (member) => {
     client.guilds.client.channels.cache.get("1060665184768766033").edit({})
 })
 
-client.on('interactionCreate', async (interaction) => {
+client.on('interactionCreate', (interaction) => {
     if (interaction.isChatInputCommand()) {
         if (interaction.commandName === 'sendembed') {
             const buttons = new ActionRowBuilder()
                 .setComponents(utils.sendButtonPriceHandler())
-            await interaction.channel.send({ embeds: [utils.sendEmbedPrices()], components: [buttons] })
+            interaction.channel.send({ embeds: [utils.sendEmbedPrices()], components: [buttons] })
         }
         if (interaction.commandName === "account") {
-            const ign = interaction.options.getString("username")
-            const price = interaction.options.getString("price")
-            const rank = interaction.options.getString("rank")
-            const networth = interaction.options.getString("networth")
-            const slayers = interaction.options.getString("slayers")
-            const sa = interaction.options.getInteger("sa")
-            const cata = interaction.options.getInteger("cata")
-
-            await interaction.guild.channels.create({
-                name: `account-${networth}-${price}`,
-                parent: '1060621170514350162',
-                permissionOverwrites: [
-                    {
-                        deny: ['SendMessages'],
-                        id: guild_id,
-                    },
-                    {
-                        allow: ['ViewChannel', 'SendMessages'],
-                        id: '1060399996677144627'
-                    }
-                ]
-            }).then(c => {
-                const embed = new EmbedBuilder()
-                    .setAuthor({ name: "[ Icy Accounts ]" })
-                    .setTitle("New Account")
-                    .setDescription(ign)
-                    .setFields(
-                        { name: "**[ Info ]**", value: `Rank: ${rank} Networth: ${networth} Skill Average: ${sa}\nCatacombs: ${cata} Slayers: ${slayers}\nBin Price: ${price}` }
-                    )
-                    .setFooter({ text: "[ Developed by Butther ]" })
-                    .setColor(0x34d6d0)
-
-                c.send({ embeds: [embed] })
-                interaction.reply(`New account channel created! <#${c.id}>`)
-                setTimeout(() => { interaction.deleteReply() }, 2000)
-            })
+            Extra.accountUtil(interaction)
         }
     }
 
     try {
         if (interaction.isButton()) {
             if (interaction.component.customId == "SellCoins") {
-                await interaction.showModal(utils.sendModalPrices("sell"))
+                interaction.showModal(utils.sendModalPrices("sell"))
                 CoinType = "sell"
             }
 
             if (interaction.component.customId == "BuyCoins") {
-                await interaction.showModal(utils.sendModalPrices("buy"))
+                interaction.showModal(utils.sendModalPrices("buy"))
                 CoinType = "buy"
             }
 
@@ -97,7 +64,7 @@ client.on('interactionCreate', async (interaction) => {
             }
 
             if (interaction.component.customId == "CloseTicket") {
-                await interaction.showModal(utils.transcriptModal())
+                interaction.showModal(utils.transcriptModal())
             }
         }
     } catch (error) {
@@ -113,7 +80,7 @@ client.on('interactionCreate', async (interaction) => {
                 ChannelId = "1060620952800604210"
             }
 
-            await interaction.guild.channels.create({
+            interaction.guild.channels.create({
                 name: `${CoinType}-${interaction.fields.getField("PaymentMethod").value}-${interaction.fields.getField("Amount").value}-${interaction.user.tag}`,
                 parent: ChannelId,
                 permissionOverwrites: [
@@ -157,7 +124,7 @@ client.on('interactionCreate', async (interaction) => {
             setTimeout(() => {
                 interaction.channel.delete("Ticket closed.")
 
-                fs.writeFileSync(`../${interaction.channel.id}.txt`, array)
+                fs.writeFileSync(`./txt//${interaction.channel.id}.txt`, array)
                 const embed = new EmbedBuilder()
                     .setAuthor({ name: "[ Icy Coins ]" })
                     .setColor(0xf5b942)
@@ -168,12 +135,16 @@ client.on('interactionCreate', async (interaction) => {
                             value: `${interaction.fields.getField("Reason").value}`
                         })
                     .setFooter({ text: "[ Developed by Butther ]" })
-                const file = new AttachmentBuilder(fs.createReadStream(`../${interaction.channel.id}.txt`))
-                client.channels.cache.get("1060383555198394429").send({ embeds: [embed]})
-                interaction.followUp({files: [file]})
+                const file = new AttachmentBuilder(fs.createReadStream(`./txt/${interaction.channel.id}.txt`))
+                client.channels.cache.get("1060383555198394429").send({ embeds: [embed] })
+                interaction.followUp({ files: [file] })
             }, 5000)
         }
     }
+})
+
+client.on("error", (error) => {
+    console.error(error)
 })
 
 async function main() {
