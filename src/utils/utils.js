@@ -1,5 +1,5 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, ModalBuilder, TextInputBuilder, TextInputStyle } from "discord.js"
-import axios from "axios";
+import fs from "fs"
 export default {
     sendEmbedPrices: () => {
         let msg = new EmbedBuilder()
@@ -128,23 +128,38 @@ export default {
 
         return msg;
     },
-
+    
     //chatgpt
     abbreviateNumber: (num, networth = false) => {
         const ABBREVIATIONS = ['', 'K', 'M', 'B', 'T'];
 
-        for (let i = ABBREVIATIONS.length - 1; i >= 0; i--) {
-            const abbreviation = ABBREVIATIONS[i];
-            const size = Math.pow(1000, i);
-            if (num >= size) {
-                if(networth == true) {
-                    return Math.floor(num / size) + abbreviation;
-                } else {                
-                const roundedNum = Math.round(num / size * 100) / 100;
-                return roundedNum + abbreviation;
+        if (num.toString().match(/(\d\d\d)(K|M|B|T)/g)) {
+            console.log(num)
+            return num;
+        } else {
+            for (let i = ABBREVIATIONS.length - 1; i >= 0; i--) {
+                const abbreviation = ABBREVIATIONS[i];
+                const size = Math.pow(1000, i);
+                if (num >= size) {
+                    if (networth == true) {
+                        const roundedNum = Math.floor(num / size);
+                        return Math.floor(num / size) + abbreviation;
+                    } else {
+                        const roundedNum = Math.round(num / size * 100) / 100;
+                        return roundedNum + abbreviation;
+                    }
                 }
             }
         }
     },
-      
+
+    saveData: async(key, value) => {
+        const data = await fs.readFileSync('data.json');
+        const obj = JSON.parse(data);
+
+        obj[key] = value;
+
+        await fs.writeFileSync('data.json', JSON.stringify(obj));
+        console.log('The file has been updated!');
+    }
 }

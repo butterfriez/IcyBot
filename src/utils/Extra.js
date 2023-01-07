@@ -1,10 +1,13 @@
 import axios from "axios"
 import utils from "./utils.js"
 import { EmbedBuilder } from "discord.js"
+import fs from "fs"
 export default {
     accountUtil: (interaction) => {
-        axios.request(`http://localhost:3000/v1/profiles/${interaction.options.getString("username")}?key=real`).then(d => {
+        axios.request(`http://localhost:3000/v1/profiles/${interaction.options.getString("username")}?key=real`).then(async d => {
             const currentProfile = d.data.data.find(datum => datum.selected)
+            const data = await fs.readFileSync("data.json")
+            console.log(data["accounts"])
             const [rank, networth, bank, purse, cata, price, ign, sa, slayers] = [
                 currentProfile["rank"].toString().replace(/(?:(&|§)(.?))/g, ""),
                 currentProfile["networth"]["networth"].toString(),
@@ -16,8 +19,10 @@ export default {
                 utils.abbreviateNumber((currentProfile["skills"]["alchemy"]["level"] + currentProfile["skills"]["mining"]["level"] + currentProfile["skills"]["enchanting"]["level"] + currentProfile["skills"]["combat"]["level"] + currentProfile["skills"]["carpentry"]["level"] + currentProfile["skills"]["farming"]["level"] + currentProfile["skills"]["fishing"]["level"] + currentProfile["skills"]["foraging"]["level"] + currentProfile["skills"]["taming"]["level"]) / 10),
                 `${currentProfile["slayer"]["zombie"]["level"]}/${currentProfile["slayer"]["spider"]["level"]}/${currentProfile["slayer"]["wolf"]["level"]}/${currentProfile["slayer"]["enderman"]["level"]}/${currentProfile["slayer"]["blaze"]["level"]}`
             ]
+            const obj = JSON.parse(data)
+            utils.saveData("accounts", obj["accounts"]++)
             interaction.guild.channels.create({
-                name: `account-${utils.abbreviateNumber(networth, true)}-${price}`,
+                name: `account-${obj["accounts"]}-${utils.abbreviateNumber(networth, true)}-${price}`,
                 parent: '1060621170514350162',
                 permissionOverwrites: [
                     {

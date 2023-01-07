@@ -5,7 +5,6 @@ import {
     Routes,
     ActionRowBuilder,
     EmbedBuilder,
-    Attachment,
     AttachmentBuilder
 } from "discord.js"
 import { config } from "dotenv"
@@ -14,7 +13,6 @@ config()
 import SendEmbed from "./commands/SendEmbed.js"
 import utils from "./utils/utils.js"
 import fs from "fs"
-import axios from "axios";
 import Extra from "./utils/Extra.js"
 
 const token = process.env.TOKEN
