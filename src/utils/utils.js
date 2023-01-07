@@ -130,20 +130,21 @@ export default {
     },
 
     //chatgpt
-    abbreviateNumber: (num) => {
+    abbreviateNumber: (num, networth = false) => {
         const ABBREVIATIONS = ['', 'K', 'M', 'B', 'T'];
 
-        if (num < 1000) {
-          return Math.floor(num);
-        }
-      
         for (let i = ABBREVIATIONS.length - 1; i >= 0; i--) {
-          const abbreviation = ABBREVIATIONS[i];
-          const size = Math.pow(1000, i);
-          if (num >= size) {
-            return Math.floor(num / size) + abbreviation;
-          }
+            const abbreviation = ABBREVIATIONS[i];
+            const size = Math.pow(1000, i);
+            if (num >= size) {
+                if(networth == true) {
+                    return Math.floor(num / size) + abbreviation;
+                } else {                
+                const roundedNum = Math.round(num / size * 100) / 100;
+                return roundedNum + abbreviation;
+                }
+            }
         }
-      },
+    },
       
 }
