@@ -15,7 +15,7 @@ import SendEmbed from "./commands/SendEmbed.js"
 import SendVerification from "./commands/SendVerification.js"
 config()
 import utils from "./utils/utils.js"
-import fs from "fs"
+import fs from "fs/promises"
 import Extra from "./utils/Extra.js"
 
 const token = process.env.TOKEN
@@ -91,46 +91,54 @@ client.on('interactionCreate', (interaction) => {
 
     if (interaction.isModalSubmit()) {
         if (interaction.customId == "PriceModal") {
-            let ChannelId = "1059931083610804334"
-            if (CoinType == "buy" || CoinType == "sell") {
-                ChannelId = "1059931083610804334"
-            } else if (CoinType == "account") {
-                ChannelId = "1060620952800604210"
+            let channelId = "1059931083610804334"
+            let amount = interaction.fields.getField("Amount").value
+            if(amount.match(/(\d*\.?)/g)) {
+                amount = utils.abbreviateNumber(amount)
             }
 
-            interaction.guild.channels.create({
-                name: `${CoinType}-${interaction.fields.getField("PaymentMethod").value}-${interaction.fields.getField("Amount").value}-${interaction.user.tag}`,
-                parent: ChannelId,
-                permissionOverwrites: [
-                    {
-                        allow: ['ViewChannel', 'SendMessages'],
-                        id: interaction.user.id,
-                    },
-                    {
-                        allow: ['ViewChannel', 'SendMessages'],
-                        id: client.user.id
-                    },
-                    {
-                        deny: ['ViewChannel', 'SendMessages'],
-                        id: guild_id,
-                    },
-                    {
-                        allow: ['ViewChannel', 'SendMessages'],
-                        id: '1060399996677144627'
-                    }
-                ]
-            }).then(async c => {
-                const Button = new ActionRowBuilder()
-                    .setComponents(utils.closeTicketButton())
-                if (c.name.includes("buy") || c.name.includes("sell")) {
-                    c.send({ components: [Button], embeds: [utils.ticketEmbed()] })
-                }
-                if (c.name.includes("account")) {
-                    c.send({ content: `https://sky.shiiyu.moe/${interaction.fields.getField("Amount").value}`, components: [Button] })
-                }
-                interaction.reply({ content: `<@${interaction.user.id}> Successfully made a ticket.\n <#${c.id}>` })
-                setTimeout(() => { interaction.deleteReply() }, 2000)
-            })
+            if (CoinType == "buy" || CoinType == "sell") {
+                channelId = "1059931083610804334"
+                interaction.guild.channels.create({
+                    name: `${CoinType}-${interaction.fields.getField("PaymentMethod").value}-${amount.replace(".", "point")}-${interaction.user.tag}`,
+                    parent: channelId,
+                    permissionOverwrites: [
+                        {
+                            allow: ['ViewChannel', 'SendMessages'],
+                            id: interaction.user.id,
+                        },
+                        {
+                            allow: ['ViewChannel', 'SendMessages'],
+                            id: client.user.id
+                        },
+                        {
+                            deny: ['ViewChannel', 'SendMessages'],
+                            id: guild_id,
+                        },
+                        {
+                            allow: ['ViewChannel', 'SendMessages'],
+                            id: '1060399996677144627'
+                        }
+                    ]
+                }).then(c => {
+
+                    const embed = new EmbedBuilder()
+                        .setAuthor({ name: "[ Icy Accounts ]" })
+                        .setTitle(`New **${CoinType.toString().toUpperCase()}** Ticket!`)
+                        .setFields(
+                            { name: "**[ Info ]**", value: `Amount: ${amount}\nPayment Method: ${interaction.fields.getField("PaymentMethod").value}` }
+                        )
+                        .setFooter({ text: "[ Developed by Butther ]" })
+                        .setColor(0x34d6d0)
+    
+                    c.send({ embeds: [embed], components: [new ActionRowBuilder().setComponents(utils.closeTicketButton())] })
+                    interaction.reply(`<@${interaction.user.id}> New ticket created! <#${c.id}>`)
+                    setTimeout(() => {interaction.deleteReply()}, 3000)
+                })
+            } else if (CoinType == "account") {
+                channelId = "1060620952800604210"
+                Extra.accountTicketUtil(interaction.fields.getField("Amount"), interaction, CoinType, channelId)
+            }
         }
 
         if (interaction.customId == "Transcript") {

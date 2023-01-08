@@ -141,7 +141,7 @@ export default {
     
     //chatgpt
     abbreviateNumber: (num) => {
-        return new Intl.NumberFormat("en-US", {notation: "compact",compactDisplay: "short"}).format(num)
+        return Intl.NumberFormat("en-US", {notation: "compact",compactDisplay: "short"}).format(num)
     },
 
     saveData: async(key, value, num) => {
