@@ -93,7 +93,7 @@ client.on('interactionCreate', (interaction) => {
         if (interaction.customId == "PriceModal") {
             let channelId = "1059931083610804334"
             let amount = interaction.fields.getField("Amount").value
-            if(amount.match(/(\d*\.?)/g)) {
+            if(/^\d+(?:.\d+)?$/.test(amount)) {
                 amount = utils.abbreviateNumber(amount)
             }
 
