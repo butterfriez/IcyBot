@@ -23,7 +23,7 @@ const client_id = process.env.CLIENT_ID
 const guild_id = "1059911439583825940"
 const client = new Client(
     {
-        intents: [GatewayIntentBits.Guilds, GatewayIntentBits.MessageContent, GatewayIntentBits.GuildMessages]
+        intents: [GatewayIntentBits.Guilds, GatewayIntentBits.MessageContent, GatewayIntentBits.GuildMessages, GatewayIntentBits.GuildMembers]
     }
 )
 let CoinType;
@@ -79,8 +79,8 @@ client.on('interactionCreate', (interaction) => {
             }
 
             if (interaction.component.customId == "Verify") {
-                interaction.member.roles.add(interaction.guild.roles.cache.find(role => role.name.toLowerCase() == "verified"))
                 interaction.member.roles.remove(interaction.guild.roles.cache.find(role => role.name.toLowerCase() == "unverified"))
+                interaction.member.roles.add(interaction.guild.roles.cache.find(role => role.name.toLowerCase() == "verified"))
                 interaction.reply(`Verified <@${interaction.user.id}>!`)
                 setTimeout(() => {interaction.deleteReply()}, 2000)
             }
@@ -172,6 +172,11 @@ client.on('interactionCreate', (interaction) => {
 client.on("error", (error) => {
     console.error(error)
 })
+
+client.on("guildMemberAdd", (member) => {
+    member.roles.add(member.guild.roles.cache.find(role => role.name == "unverified")).catch(error => {console.error(error)})
+})
+
 async function main() {
     const commands = [
         SendEmbed,
